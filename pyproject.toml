@@ -1,0 +1,7 @@
+[project]
+name = "queens"
+version = "0.1.0"
+description = "Linkedin queens solver"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["rich"]
