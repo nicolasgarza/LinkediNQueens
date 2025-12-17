@@ -18,27 +18,21 @@ class NQueens:
         def create_board(state):
             pass
 
-        def backtrack(row, diagonals, anti_diagonals, cols, state):
-            # Base case
-            if row == n:
-                ans.append(create_board(state))
-                return
+        def backtrack(row, cols, state):
+            # base case
+            if row == n and all(section.has_queen()):
+                return self.board
 
             for col in range(n):
-                curr_diagonal = row - col
-                curr_anti_diagonal = row + col
                 # If the queen is not placeable
                 if (
                     col in cols
-                    or curr_diagonal in diagonals
-                    or curr_anti_diagonal in anti_diagonals
+                    or other_queen_in_neighboring_region(x, y)
                 ):
                     continue
 
                 # "Add" the queen to the board
                 cols.add(col)
-                diagonals.add(curr_diagonal)
-                anti_diagonals.add(curr_anti_diagonal)
                 state[row][col] = "Q"
 
                 # Move on to the next row with the updated board state
@@ -47,8 +41,6 @@ class NQueens:
                 # "Remove" the queen from the board since we have already
                 # explored all valid paths using the above function call
                 cols.remove(col)
-                diagonals.remove(curr_diagonal)
-                anti_diagonals.remove(curr_anti_diagonal)
                 state[row][col] = "."
 
         ans = []
