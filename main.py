@@ -1,33 +1,15 @@
 from rich import print
 from rich.text import Text
+from itertools import cycle
+from dataclasses import dataclass
 
-class Color:
-    id = 0
-    COLORS = [
-        "#FF0000",  # red
-        "#00FF00",  # green
-        "#0000FF",  # blue
-        "#FFFF00",  # yellow
-        "#FF00FF",  # magenta
-        "#00FFFF",  # cyan
-        "#000000",  # black
-        "#FFFFFF",  # white
-        "#808080",  # gray
-        "#FFA500",  # orange
-    ]
+COLORS = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#000000",
+        "#FFFFFF", "#808080", "#FFA500",]
 
-    def __init__(self):
-        pass
-
-    def get_color(self):
-        color = self.COLORS[self.id]
-        self.id = (self.id + 1) % len(self.COLORS)
-        return color
+@dataclass
 class Tile:
-    def __init__(self, section, has_queen=False, locked=False):
-        self.has_queen = has_queen or locked
-        self.locked = locked
-        self.section = section
+    section: "Section"
+    has_queen: bool = False
 
 class Section:
     def __init__(self, color):
@@ -35,15 +17,14 @@ class Section:
         self.tiles = set()
         self.contains_queen = False
 
-    def section_contains_queen(self):
-        return self.contains_queen
-
     def __rich__(self):
         return Text(str(self.tiles), style=f"on {self.color}")
 
 class NQueens:
 
-    color_picker = Color()
+    DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1],
+        [1, 1], [-1, 1], [-1, -1], [1, -1]]
+    color_picker = cycle(COLORS)
     def __init__(self, starting_board):
         self.ROWS, self.COLS = len(starting_board), len(starting_board[0])
         self.board = [[None for _ in range(self.COLS)] for _ in range(self.ROWS)]
@@ -53,16 +34,16 @@ class NQueens:
         color_map = {} # color string: Section
         for i in range(self.ROWS):
             for j in range(self.COLS):
-                has_queen, color = starting_board[i][j]
+                has_queen, region_key = starting_board[i][j]
 
-                if color in color_map:
+                if region_key in color_map:
                     # get section for this color
-                    section = color_map[color]
+                    section = color_map[region_key]
                 else:
                     # doesn't exist, create new section
-                    section = Section(self.color_picker.get_color())
+                    section = Section(next(self.color_picker))
                     self.sections.append(section)
-                    color_map[color] = section
+                    color_map[region_key] = section
 
                 if has_queen:
                     section.contains_queen = True
@@ -70,13 +51,11 @@ class NQueens:
                     self.static_cols.add(j)
 
                 section.tiles.add((i, j))
-                self.board[i][j] = Tile(section, locked=has_queen)
+                self.board[i][j] = Tile(section)
 
-    def other_queen_in_neighboring_region(self, x, y):
-        dirs = [[1, 0], [0, 1], [-1, 0], [0, -1],
-                [1, 1], [-1, 1], [-1, -1], [1, -1]]
+    def has_adjacent_queen(self, x, y):
 
-        for dx, dy in dirs:
+        for dx, dy in self.DIRS:
             new_x = x + dx
             new_y = y + dy
 
@@ -86,7 +65,7 @@ class NQueens:
 
         return False
 
-    def Solution(self):
+    def solve(self):
         for i in range(self.ROWS):
             if self._backtrack(i, set()): # found solution
                 break
@@ -100,21 +79,21 @@ class NQueens:
     def _backtrack(self, row, cols):
         n = len(self.board)
         # base case
-        if all([section.section_contains_queen() for section in self.sections]):
+        if all([section.contains_queen for section in self.sections]):
             print("found solution")
             return True
+        if row >= self.ROWS:
+            return False
 
-        for col in range(n):
-            print(f"processing [{row}][{col}]")
+        for col in range(self.COLS):
             # If the queen is not placeable
             if (
                 col in cols
-                or self.other_queen_in_neighboring_region(row, col)
-                or self.board[row][col].section.section_contains_queen()
+                or self.has_adjacent_queen(row, col)
+                or self.board[row][col].section.contains_queen
                 or row in self.static_rows
                 or col in self.static_cols
             ):
-                print(f"skipping [{row}][{col}]")
                 continue
 
             # add the queen to the board
@@ -189,7 +168,7 @@ def main():
     solution.print_sections()
 
     # run algorithm
-    solution.Solution()
+    solution.solve()
 
 if __name__ == "__main__":
     main()
