@@ -11,6 +11,9 @@ class Tile:
     section: "Section"
     has_queen: bool = False
 
+    def __repr__(self):
+        return f"{self.has_queen}"
+
 class Section:
     def __init__(self, color):
         self.color = color
@@ -21,15 +24,15 @@ class Section:
         return Text(str(self.tiles), style=f"on {self.color}")
 
 class NQueens:
-
     DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1],
         [1, 1], [-1, 1], [-1, -1], [1, -1]]
     color_picker = cycle(COLORS)
+
     def __init__(self, starting_board):
         self.ROWS, self.COLS = len(starting_board), len(starting_board[0])
         self.board = [[None for _ in range(self.COLS)] for _ in range(self.ROWS)]
         self.sections = []
-        self.static_rows, self.static_cols = set(), set()
+        self.static_rows, self.static_cols, self.starting_queens = set(), set(), set()
 
         color_map = {} # color string: Section
         for i in range(self.ROWS):
@@ -45,16 +48,16 @@ class NQueens:
                     self.sections.append(section)
                     color_map[region_key] = section
 
-                if has_queen:
-                    section.contains_queen = True
-                    self.static_rows.add(i)
-                    self.static_cols.add(j)
-
                 section.tiles.add((i, j))
                 self.board[i][j] = Tile(section)
 
-    def has_adjacent_queen(self, x, y):
+                if has_queen:
+                    self.starting_queens.add((i, j))
+                    self.add_queen(i, j)
+                    self.static_rows.add(i)
+                    self.static_cols.add(j)
 
+    def has_adjacent_queen(self, x, y):
         for dx, dy in self.DIRS:
             new_x = x + dx
             new_y = y + dy
@@ -71,13 +74,13 @@ class NQueens:
                 break
 
         print(self)
+        return self.board
 
     """
     This backtracking algorithm is taken from the leetcode editorial for n-queens, and adapted for
     the linkedin version of the game
     """
     def _backtrack(self, row, cols):
-        n = len(self.board)
         # base case
         if all([section.contains_queen for section in self.sections]):
             print("found solution")

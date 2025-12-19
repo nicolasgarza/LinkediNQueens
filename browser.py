@@ -17,20 +17,24 @@ class Browser:
         frame = self.page.frame_locator("iframe[title='games']")
         frame.get_by_role("button", name="Start game").click()
 
-        html = self.page.content()
-        with open("page.html", "w", encoding="utf-8") as f:
-            f.write(html)
-
         # self.log_html_and_frames()
 
         frame = self.page.frame_locator("iframe[title='games']")
         frame.get_by_role("button", name="Dismiss").click()
 
-        board, cell_pointers = self.get_tiles()
-        print(board)
-        print(cell_pointers)
+        board, tile_pointers = self.get_tiles()
 
-        input("enter to close\n")
+        return board, tile_pointers
+
+    def write_solution(self, board, tile_pointers, starting_queens):
+        for i in range(len(board)):
+            for j in range(len(board[i])):
+                if board[i][j].has_queen and (i, j) not in starting_queens:
+                    tile_pointers[i][j].dblclick()
+
+    def close(self):
+        self.browser.close()
+        self.playwright_runtime.stop()
 
     def get_tiles(self):
         # self.log_html_and_frames()
@@ -39,7 +43,7 @@ class Browser:
         queens_grid = frame.locator("#queens-grid")
 
         children = queens_grid.locator(":scope > div")
-        board, cell_pointers, curr_row = [[]], [[]], 1
+        board, tile_pointers, curr_row = [[]], [[]], 1
         for child in children.all():
             label = child.get_attribute("aria-label")
             if not label: continue
@@ -51,13 +55,13 @@ class Browser:
             label_row = int(label[label.index("row") + 1].rstrip(","))
             if label_row == curr_row + 1:
                 board.append([])
-                cell_pointers.append([])
+                tile_pointers.append([])
                 curr_row += 1
 
             board[-1].append((has_queen, color))
-            cell_pointers[-1].append(child)
+            tile_pointers[-1].append(child)
 
-        return board, cell_pointers
+        return board, tile_pointers
 
     def extract_color(self, words):
         color = []
@@ -85,6 +89,3 @@ class Browser:
         for i, frame in enumerate(self.page.frames):
             print(i, frame.url)
 
-    def close(self):
-        self.browser.close()
-        self.playwright_runtime.stop()

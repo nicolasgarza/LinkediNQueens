@@ -48,3 +48,25 @@ class NQueens:
         backtrack(0, set(), set(), set(), empty_board)
         return ans
 ```
+
+would also be cool to make a fuzzer. don't need to autogenerate boards. just generate with different combinations of
+ queens being removed from a solved (valid) board.
+
+ """Original board
+    board = [
+             [(True, "purple"), (False, "orange"), (False, "orange"), (False, "orange"), (False, "orange"),],
+             [(False, "blue"), (False, "green"), (False, "blue"), (True, "orange"), (False, "blue"),],
+             [(False, "blue"), (True, "green"), (False, "blue"), (False, "blue"), (False, "blue"),],
+             [(False, "blue"), (False, "blue"), (False, "blue"), (False, "grey"), (True, "grey"),],
+             [(False, "blue"), (False, "blue"), (True, "blue"), (False, "blue"), (False, "blue"),],
+            ]
+
+    no queens:
+    board = [
+             [(False, "purple"), (False, "orange"), (False, "orange"), (False, "orange"), (False, "orange"),],
+             [(False, "blue"), (False, "green"), (False, "blue"), (False, "orange"), (False, "blue"),],
+             [(False, "blue"), (False, "green"), (False, "blue"), (False, "blue"), (False, "blue"),],
+             [(False, "blue"), (False, "blue"), (False, "blue"), (False, "grey"), (False, "grey"),],
+             [(False, "blue"), (False, "blue"), (False, "blue"), (False, "blue"), (False, "blue"),],
+            ]
+    """
