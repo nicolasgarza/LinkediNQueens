@@ -73,7 +73,7 @@ class NQueens:
             if self._backtrack(i, set()): # found solution
                 break
 
-        print(self)
+        # print(self)
         return self.board
 
     """

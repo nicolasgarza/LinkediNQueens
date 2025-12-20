@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+from time import sleep
 
 class Browser:
     def __init__(self):
@@ -9,7 +10,7 @@ class Browser:
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
 
-    def open(self):
+    def open_incognito(self):
         self.page.goto("https://linkedin.com/games/queens/")
 
         # self.log_html_and_frames()
@@ -26,21 +27,42 @@ class Browser:
 
         return board, tile_pointers
 
+    def open_login(self):
+        self.login()
+        self.page.goto("https://linkedin.com/games/queens/")
+
+
+        sleep(3)
+
+        # self.log_html_and_frames()
+        board, tile_pointers = self.get_tiles()
+        # print(board)
+
+        return board, tile_pointers
+
+    def login(self):
+        # im just going to type in the credentials myself i dont want to look like a bot
+        self.page.goto("https://linkedin.com/login/")
+        sleep(20)
+
     def write_solution(self, board, tile_pointers, starting_queens):
         for i in range(len(board)):
             for j in range(len(board[i])):
                 if board[i][j].has_queen and (i, j) not in starting_queens:
                     tile_pointers[i][j].dblclick()
+        sleep(15)
+        print("wrote solution")
+
 
     def close(self):
         self.browser.close()
         self.playwright_runtime.stop()
 
     def get_tiles(self):
-        # self.log_html_and_frames()
 
         frame = self.page.frame_locator("iframe[title='games']")
         queens_grid = frame.locator("#queens-grid")
+        self.log_html_and_frames()
 
         children = queens_grid.locator(":scope > div")
         board, tile_pointers, curr_row = [[]], [[]], 1
