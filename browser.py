@@ -1,5 +1,7 @@
 from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect
 from time import sleep
+
 
 class Browser:
     def __init__(self):
@@ -30,8 +32,6 @@ class Browser:
     def open_login(self):
         self.login()
         self.page.goto("https://linkedin.com/games/queens/")
-
-
         sleep(3)
 
         # self.log_html_and_frames()
@@ -46,11 +46,11 @@ class Browser:
         sleep(20)
 
     def write_solution(self, board, tile_pointers, starting_queens):
+        self.log_html_and_frames()
         for i in range(len(board)):
             for j in range(len(board[i])):
                 if board[i][j].has_queen and (i, j) not in starting_queens:
                     tile_pointers[i][j].dblclick()
-        sleep(15)
         print("wrote solution")
 
 
@@ -58,13 +58,31 @@ class Browser:
         self.browser.close()
         self.playwright_runtime.stop()
 
-    def get_tiles(self):
+    def get_game_scope(self):
+        if self.page.locator("#queens-grid").count() > 0:
+            return self.page
 
-        frame = self.page.frame_locator("iframe[title='games']")
-        queens_grid = frame.locator("#queens-grid")
-        self.log_html_and_frames()
+        for f in self.page.frames:
+            try:
+                if f.locator("#queens-grid").count() > 0:
+                    print("Using frame:", f.url)
+                    return f
+            except Exception:
+                pass
+
+        raise RuntimeError("could not find #queens-grid in page or any frame")
+
+
+    def get_tiles(self):
+        scope = self.get_game_scope()
+        queens_grid = scope.locator("#queens-grid")
+        expect(queens_grid).to_be_visible()
 
         children = queens_grid.locator(":scope > div")
+        print("cells:", children.count())
+        cell0 = children.first
+        print("cell0:", cell0.get_attribute("aria-label"), cell0.get_attribute("aria-disabled"))
+
         board, tile_pointers, curr_row = [[]], [[]], 1
         for child in children.all():
             label = child.get_attribute("aria-label")
