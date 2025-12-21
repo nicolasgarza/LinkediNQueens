@@ -57,6 +57,9 @@ class NQueens:
                     self.static_rows.add(i)
                     self.static_cols.add(j)
 
+        print("QUEENS BOARD:")
+        print(self)
+
     def has_adjacent_queen(self, x, y):
         for dx, dy in self.DIRS:
             new_x = x + dx
