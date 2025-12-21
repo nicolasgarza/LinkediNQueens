@@ -32,7 +32,7 @@ class Browser:
     def open_login(self):
         self.login()
         self.page.goto("https://linkedin.com/games/queens/")
-        sleep(3)
+        # sleep(3)
 
         # self.log_html_and_frames()
         board, tile_pointers = self.get_tiles()
@@ -46,7 +46,6 @@ class Browser:
         sleep(20)
 
     def write_solution(self, board, tile_pointers, starting_queens):
-        self.log_html_and_frames()
         for i in range(len(board)):
             for j in range(len(board[i])):
                 if board[i][j].has_queen and (i, j) not in starting_queens:
@@ -74,14 +73,13 @@ class Browser:
 
 
     def get_tiles(self):
-        scope = self.get_game_scope()
+        # scope = self.get_game_scope()
+
+        scope = self.page.frame_locator("iframe[title='games']")
         queens_grid = scope.locator("#queens-grid")
-        expect(queens_grid).to_be_visible()
+        self.log_html_and_frames()
 
         children = queens_grid.locator(":scope > div")
-        print("cells:", children.count())
-        cell0 = children.first
-        print("cell0:", cell0.get_attribute("aria-label"), cell0.get_attribute("aria-disabled"))
 
         board, tile_pointers, curr_row = [[]], [[]], 1
         for child in children.all():
@@ -120,12 +118,20 @@ class Browser:
 
         return " ".join(color)
 
-    def log_html_and_frames(self):
-        html = self.page.content()
-        with open("page.html", "w", encoding="utf-8") as f:
-            f.write(html)
+def log_html_and_frames(self):
+    # top-level page HTML
+    with open("page.html", "w", encoding="utf-8") as f:
+        f.write(self.page.content())
 
-        print("Frames1:")
-        for i, frame in enumerate(self.page.frames):
-            print(i, frame.url)
+    # iframe HTML (inside iframe[title="games"])
+    iframe_el = self.page.query_selector("iframe[title='games']")
+    frame = iframe_el.content_frame() if iframe_el else None
+
+    if frame:
+        with open("games_iframe.html", "w", encoding="utf-8") as f:
+            f.write(frame.content())
+
+    print("Frames:")
+    for i, fr in enumerate(self.page.frames):
+        print(i, fr.url)
 
